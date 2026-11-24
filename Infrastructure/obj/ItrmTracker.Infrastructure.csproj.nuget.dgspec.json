@@ -1,0 +1,211 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\ItrmTracker.Infrastructure.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj",
+        "projectName": "ItrmTracker.Application",
+        "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj",
+        "packagesPath": "C:\\Users\\CON-TAHAMH\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\CON-TAHAMH\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj": {
+                "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\dotnet-sdk-8.0.428-win-x64\\sdk\\8.0.428/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj",
+        "projectName": "ItrmTracker.Domain",
+        "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj",
+        "packagesPath": "C:\\Users\\CON-TAHAMH\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\CON-TAHAMH\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\dotnet-sdk-8.0.428-win-x64\\sdk\\8.0.428/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\ItrmTracker.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\ItrmTracker.Infrastructure.csproj",
+        "projectName": "ItrmTracker.Infrastructure",
+        "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\ItrmTracker.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\CON-TAHAMH\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\CON-TAHAMH\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj": {
+                "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj"
+              },
+              "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj": {
+                "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\dotnet-sdk-8.0.428-win-x64\\sdk\\8.0.428/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

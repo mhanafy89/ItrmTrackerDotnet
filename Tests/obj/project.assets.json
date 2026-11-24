@@ -1,0 +1,141 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {}
+  },
+  "libraries": {},
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "Microsoft.NET.Test.Sdk >= 17.11.1",
+      "coverlet.collector >= 6.0.2",
+      "xunit >= 2.9.2",
+      "xunit.runner.visualstudio >= 2.8.2"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\CON-TAHAMH\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Tests\\ItrmTracker.Tests.csproj",
+      "projectName": "ItrmTracker.Tests",
+      "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Tests\\ItrmTracker.Tests.csproj",
+      "packagesPath": "C:\\Users\\CON-TAHAMH\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Tests\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\CON-TAHAMH\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {
+            "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj": {
+              "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj"
+            },
+            "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj": {
+              "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Domain\\ItrmTracker.Domain.csproj"
+            },
+            "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\ItrmTracker.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\ItrmTracker.Infrastructure.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "dependencies": {
+          "Microsoft.NET.Test.Sdk": {
+            "target": "Package",
+            "version": "[17.11.1, )"
+          },
+          "coverlet.collector": {
+            "target": "Package",
+            "version": "[6.0.2, )"
+          },
+          "xunit": {
+            "target": "Package",
+            "version": "[2.9.2, )"
+          },
+          "xunit.runner.visualstudio": {
+            "target": "Package",
+            "version": "[2.8.2, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\dotnet-sdk-8.0.428-win-x64\\sdk\\8.0.428/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "Failed to download package 'xunit.runner.visualstudio.2.8.2' from 'https://api.nuget.org/v3-flatcontainer/xunit.runner.visualstudio/2.8.2/xunit.runner.visualstudio.2.8.2.nupkg'.\r\nResponse status code does not indicate success: 403 (Forbidden)."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "The feed 'nuget.org [https://api.nuget.org/v3/index.json]' lists package 'xunit.runner.visualstudio.2.8.2' but multiple attempts to download the nupkg have failed. The feed is either invalid or required packages were removed while the current operation was in progress. Verify the package exists on the feed and try again."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "Failed to download package 'xunit.2.9.2' from 'https://api.nuget.org/v3-flatcontainer/xunit/2.9.2/xunit.2.9.2.nupkg'.\r\nResponse status code does not indicate success: 403 (Forbidden)."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "The feed 'nuget.org [https://api.nuget.org/v3/index.json]' lists package 'xunit.2.9.2' but multiple attempts to download the nupkg have failed. The feed is either invalid or required packages were removed while the current operation was in progress. Verify the package exists on the feed and try again."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "Failed to download package 'Microsoft.NET.Test.Sdk.17.11.1' from 'https://api.nuget.org/v3-flatcontainer/microsoft.net.test.sdk/17.11.1/microsoft.net.test.sdk.17.11.1.nupkg'.\r\nResponse status code does not indicate success: 403 (Forbidden)."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "Failed to download package 'coverlet.collector.6.0.2' from 'https://api.nuget.org/v3-flatcontainer/coverlet.collector/6.0.2/coverlet.collector.6.0.2.nupkg'.\r\nResponse status code does not indicate success: 403 (Forbidden)."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "The feed 'nuget.org [https://api.nuget.org/v3/index.json]' lists package 'Microsoft.NET.Test.Sdk.17.11.1' but multiple attempts to download the nupkg have failed. The feed is either invalid or required packages were removed while the current operation was in progress. Verify the package exists on the feed and try again."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "dgSpecHash": "OEFgwR8p07U=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Infrastructure\\ItrmTracker.Infrastructure.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "Failed to download package 'Microsoft.EntityFrameworkCore.SqlServer.8.0.11' from 'https://api.nuget.org/v3-flatcontainer/microsoft.entityframeworkcore.sqlserver/8.0.11/microsoft.entityframeworkcore.sqlserver.8.0.11.nupkg'.\r\nResponse status code does not indicate success: 403 (Forbidden)."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "The feed 'nuget.org [https://api.nuget.org/v3/index.json]' lists package 'Microsoft.EntityFrameworkCore.Design.8.0.11' but multiple attempts to download the nupkg have failed. The feed is either invalid or required packages were removed while the current operation was in progress. Verify the package exists on the feed and try again."
+    },
+    {
+      "code": "Undefined",
+      "level": "Error",
+      "message": "The feed 'nuget.org [https://api.nuget.org/v3/index.json]' lists package 'Microsoft.EntityFrameworkCore.SqlServer.8.0.11' but multiple attempts to download the nupkg have failed. The feed is either invalid or required packages were removed while the current operation was in progress. Verify the package exists on the feed and try again."
+    }
+  ]
+}
