@@ -1,0 +1,115 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "ItrmTracker.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "ItrmTracker.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/ItrmTracker.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ItrmTracker.Application.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
+      "ItrmTracker.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/ItrmTracker.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ItrmTracker.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ItrmTracker.Application/1.0.0": {
+      "type": "project",
+      "path": "../../Application/ItrmTracker.Application.csproj",
+      "msbuildProject": "../../Application/ItrmTracker.Application.csproj"
+    },
+    "ItrmTracker.Domain/1.0.0": {
+      "type": "project",
+      "path": "../../Domain/ItrmTracker.Domain.csproj",
+      "msbuildProject": "../../Domain/ItrmTracker.Domain.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "ItrmTracker.Application >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\CON-TAHAMH\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\tools\\SlaParityCheck\\SlaParityCheck.csproj",
+      "projectName": "SlaParityCheck",
+      "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\tools\\SlaParityCheck\\SlaParityCheck.csproj",
+      "packagesPath": "C:\\Users\\CON-TAHAMH\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\tools\\SlaParityCheck\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\CON-TAHAMH\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {
+            "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj": {
+              "projectPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\Application\\ItrmTracker.Application.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Users\\CON-TAHAMH\\Desktop\\RM\\itrm-tracker-app-master\\ModernizedApp\\dotnet-sdk-8.0.428-win-x64\\sdk\\8.0.428/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

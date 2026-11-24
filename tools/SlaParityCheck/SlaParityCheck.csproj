@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Differential test: runs the ported C# logic and the ORIGINAL Node.js modules on the same randomized inputs
+       and fails on any difference. Needs only the .NET SDK and node (no NuGet packages). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\ItrmTracker.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- BCL-only infrastructure code linked directly (the Infrastructure project itself needs EF Core packages). -->
+    <Compile Include="..\..\Infrastructure\Identity\Scrypt.cs" Link="Linked\Scrypt.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="legacy-oracle.js" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
