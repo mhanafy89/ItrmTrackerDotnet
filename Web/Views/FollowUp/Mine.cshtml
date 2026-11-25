@@ -1,0 +1,42 @@
+@model List<FollowedRow>
+@{
+    ViewData["Title"] = "My Follow-ups";
+    string Ctl(TrackerKind k) => k == TrackerKind.Incident ? "Incidents" : "BusinessRequests";
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">My Follow-ups</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-action="Mine">Refresh</a>
+</div>
+<div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light"><tr><th>Type</th><th>Ref No</th><th>Title</th><th>Business Unit</th><th>Stage</th><th>Status</th><th>Priority</th><th>Tech Owner</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="9" class="text-center text-muted">You're not following anything yet. Use the &#9734; star button to follow a request or incident.</td></tr>
+            }
+            @foreach (var f in Model)
+            {
+                var r = f.Record;
+                <tr data-href="@Url.Action("Details", Ctl(f.Kind), new { id = r.Id })">
+                    <td>@(f.Kind == TrackerKind.Incident ? "Incident" : "BR")</td>
+                    <td>@f.RefNo</td>
+                    <td class="td-wrap"><a asp-controller="@Ctl(f.Kind)" asp-action="Details" asp-route-id="@r.Id">@r.Title</a></td>
+                    <td>@r.BusinessUnit</td>
+                    <td>@r.Stage</td>
+                    <td>@r.Status</td>
+                    <td>@r.Priority</td>
+                    <td>@r.TechOwner</td>
+                    <td>
+                        <form method="post" asp-controller="@Ctl(f.Kind)" asp-action="Unfollow" asp-route-id="@r.Id">
+                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Unfollow</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="small text-muted">@Model.Count record@(Model.Count == 1 ? "" : "s")</div>

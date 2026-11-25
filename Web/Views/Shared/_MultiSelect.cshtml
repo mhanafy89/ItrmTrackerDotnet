@@ -1,0 +1,32 @@
+@model MultiSelectModel
+@{
+    var id = "ms-" + Model.Name;
+    var count = Model.Selected.Count;
+}
+<div class="dropdown multi-select" data-multiselect>
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="@id" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+        @Model.Label @if (count > 0) { <span class="badge text-bg-primary ms-1">@count</span> }
+    </button>
+    <div class="dropdown-menu p-2 multi-select-menu" aria-labelledby="@id">
+        @if (Model.Searchable)
+        {
+            <input type="search" class="form-control form-control-sm mb-2" placeholder="Search @Model.Label.ToLowerInvariant()…" aria-label="Search @Model.Label" data-ms-search />
+        }
+        <div class="multi-select-options">
+            @foreach (var (value, text) in Model.Options)
+            {
+                var optId = $"{id}-{value}";
+                <div class="d-flex align-items-center gap-1 ms-option" data-text="@text.ToLowerInvariant()">
+                    <input class="form-check-input mt-0" type="checkbox" name="@Model.Name" value="@value" id="@optId" checked="@Model.Selected.Contains(value)" />
+                    <label class="form-check-label flex-grow-1 text-truncate" for="@optId">@text</label>
+                    <button type="button" class="btn btn-link btn-sm p-0 ms-action" data-ms-only>Only</button>
+                    <button type="button" class="btn btn-link btn-sm p-0 ms-action" data-ms-exclude>Exclude</button>
+                </div>
+            }
+            @if (Model.Options.Count == 0)
+            {
+                <div class="text-muted small">No values.</div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,26 @@
+﻿@model ImportStepViewModel
+@inject IImportService Import
+@{
+    ViewData["Title"] = "Import – preview";
+    var s = Model.Session;
+    var fields = Model.Target.Fields.Where(f => s.Mapping.TryGetValue(f.Field, out var h) && h is not null).ToList();
+}
+<h1 class="h4">Import &amp; Merge – @Model.Target.Label</h1>
+<partial name="_Steps" model="4" />
+<p class="small text-muted">First @Math.Min(100, s.File.TotalRows) of @s.File.TotalRows rows with the selected mapping.</p>
+<div class="table-responsive preview-wrap mb-3">
+    <table class="table table-sm table-striped small">
+        <thead class="table-light sticky-top"><tr><th>#</th>@foreach (var f in fields) { <th>@f.Label</th> }</tr></thead>
+        <tbody>
+            @for (var i = 0; i < Math.Min(100, s.File.Rows.Count); i++)
+            {
+                var mapped = Import.MapRow(s.Target, s.Mapping, s.File.Rows[i]);
+                <tr><td>@(i + 1)</td>@foreach (var f in fields) { <td class="td-wrap">@(mapped.TryGetValue(f.Field, out var v) ? v : "")</td> }</tr>
+            }
+        </tbody>
+    </table>
+</div>
+<form method="post" asp-action="Analyze" asp-route-token="@s.Token" class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" asp-action="Map" asp-route-token="@s.Token">Back to mapping</a>
+    <button type="submit" class="btn btn-primary">Compare with the database</button>
+</form>

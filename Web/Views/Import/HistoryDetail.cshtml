@@ -1,0 +1,34 @@
+﻿@model ImportHistoryDetailViewModel
+@inject DisplayFormatter Format
+@{
+    var b = Model.Batch;
+    ViewData["Title"] = $"Import #{b.Id}";
+    List<FieldDiff> Diffs(string? json)
+    {
+        if (string.IsNullOrEmpty(json)) return new();
+        try { return System.Text.Json.JsonSerializer.Deserialize<List<FieldDiff>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new(); }
+        catch (System.Text.Json.JsonException) { return new(); }
+    }
+}
+<nav aria-label="breadcrumb"><ol class="breadcrumb small"><li class="breadcrumb-item"><a asp-action="History">Import history</a></li><li class="breadcrumb-item active" aria-current="page">#@b.Id</li></ol></nav>
+<h1 class="h4">Import #@b.Id – @b.Filename</h1>
+<p class="small text-muted"><time class="js-local" datetime="@DisplayFormatter.Iso(b.CreatedAt)">@Format.DateTime(b.CreatedAt)</time> by @b.CreatedBy &middot; @b.Target &middot; @b.FileType &middot; @b.TotalRows rows: @b.NewCount new, @b.UpdatedCount updated, @b.DuplicateCount duplicates, @b.SkippedCount skipped, @b.InvalidCount invalid, @b.ErrorCount errors.</p>
+<div class="table-responsive">
+    <table class="table table-sm align-middle small">
+        <thead class="table-light"><tr><th>#</th><th>Key</th><th>Title</th><th>Action</th><th>Outcome</th><th>Record</th><th>Changes / message</th></tr></thead>
+        <tbody>
+            @foreach (var r in Model.Rows)
+            {
+                var ctl = b.Target == "incidents" ? "Incidents" : "BusinessRequests";
+                <tr>
+                    <td>@(r.RowIndex + 1)</td><td>@r.KeyValue</td><td class="td-wrap">@r.Title</td><td>@r.Action</td><td>@r.Outcome</td>
+                    <td>@if (r.EntityId is { } eid) { <a asp-controller="@ctl" asp-action="Details" asp-route-id="@eid">#@eid</a> }</td>
+                    <td class="td-wrap">
+                        @foreach (var d in Diffs(r.DiffJson)) { <div><strong>@d.Label:</strong> @d.Current &rarr; @d.Uploaded</div> }
+                        @if (!string.IsNullOrEmpty(r.Message)) { <div class="text-danger">@r.Message</div> }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

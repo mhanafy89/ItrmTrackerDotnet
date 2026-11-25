@@ -1,0 +1,21 @@
+﻿@model UserCreateViewModel
+@{
+    ViewData["Title"] = "New user";
+}
+<div class="row"><div class="col-md-6 col-lg-4">
+<h1 class="h4 mb-3">New user</h1>
+<partial name="_Errors" />
+<form method="post" asp-action="Create" novalidate>
+    <div class="mb-3"><label class="form-label" asp-for="Username"></label><input class="form-control" asp-for="Username" maxlength="100" autocomplete="off" required /></div>
+    <div class="mb-3"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" maxlength="200" required /></div>
+    <div class="mb-3"><label class="form-label" asp-for="Password"></label><input class="form-control" asp-for="Password" minlength="6" autocomplete="new-password" required /><div class="form-text">At least 6 characters.</div></div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Role"></label>
+        <select class="form-select" asp-for="Role">
+            <option value="@AppRoles.ReadOnly">Read Only</option>
+            <option value="@AppRoles.ReadWrite">Read/Write</option>
+        </select>
+    </div>
+    <div class="d-flex gap-2"><a class="btn btn-outline-secondary" asp-action="Index">Cancel</a><button type="submit" class="btn btn-primary">Create</button></div>
+</form>
+</div></div>

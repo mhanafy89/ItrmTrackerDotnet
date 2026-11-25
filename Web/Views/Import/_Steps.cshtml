@@ -1,0 +1,11 @@
+﻿@model int
+@{
+    var steps = new[] { "Upload", "Auto-detect", "Map columns", "Preview", "Compare", "Differences", "Decide", "Merge", "Summary" };
+}
+<ol class="wizard-steps mb-3" aria-label="Import progress">
+    @for (var i = 0; i < steps.Length; i++)
+    {
+        var n = i + 1;
+        <li class="@(n < Model ? "done" : n == Model ? "current" : "")" aria-current="@(n == Model ? "step" : null)"><span class="step-num">@n</span> @steps[i]</li>
+    }
+</ol>

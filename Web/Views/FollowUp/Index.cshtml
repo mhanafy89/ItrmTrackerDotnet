@@ -1,0 +1,91 @@
+@model FollowUpViewModel
+@{
+    ViewData["Title"] = "Follow-up";
+    string Ctl(TrackerKind k) => k == TrackerKind.Incident ? "Incidents" : "BusinessRequests";
+    string TypeLabel(TrackerKind k) => k == TrackerKind.Incident ? "Incident" : "BR";
+}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="h4 mb-0">Follow-up</h1>
+    <form method="get" class="d-flex align-items-center gap-3">
+        <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" id="includeIncidents" name="includeIncidents" value="true" checked="@Model.IncludeIncidents" data-autosubmit />
+            <input type="hidden" name="includeIncidents" value="false" />
+            <label class="form-check-label" for="includeIncidents">Include Incidents</label>
+        </div>
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Refresh</button>
+    </form>
+</div>
+<p class="small">
+    <span class="badge text-bg-danger">Overdue</span>
+    <span class="badge text-bg-warning">Due within @TrackerRules.FollowUpThresholdDays days</span>
+    <span class="text-muted">— the current stage's planned end date (Analysis, Development, QA, UAT, CAB, Deployment) for open records.</span>
+</p>
+
+<section class="mb-4" aria-labelledby="dueTitle">
+    <h2 class="h6" id="dueTitle">Overdue and due soon</h2>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light"><tr><th>Type</th><th>Ref No</th><th>CR</th><th>Title</th><th>Business Unit</th><th>Stage</th><th>Status</th><th>Priority</th><th>Due Date</th><th>Days Remaining</th><th>Tech Owner</th><th>RM</th></tr></thead>
+            <tbody>
+                @if (Model.Data.Due.Count == 0)
+                {
+                    <tr><td colspan="12" class="text-center text-muted">Nothing overdue or due soon.</td></tr>
+                }
+                @foreach (var f in Model.Data.Due)
+                {
+                    var r = f.Record;
+                    <tr class="@(f.Remaining < 0 ? "table-danger" : "table-warning")" data-href="@Url.Action("Details", Ctl(f.Kind), new { id = r.Id })">
+                        <td>@TypeLabel(f.Kind)</td>
+                        <td>@f.RefNo</td>
+                        <td>@r.Cr</td>
+                        <td class="td-wrap"><a asp-controller="@Ctl(f.Kind)" asp-action="Details" asp-route-id="@r.Id">@r.Title</a></td>
+                        <td>@r.BusinessUnit</td>
+                        <td>@r.Stage</td>
+                        <td>@r.Status</td>
+                        <td>@r.Priority</td>
+                        <td>@f.DueLabel: @f.DueDate</td>
+                        <td><span class="badge @(f.Remaining < 0 ? "text-bg-danger" : "text-bg-warning")">@DisplayFormatter.FollowUpLabel(f.Remaining)</span></td>
+                        <td>@r.TechOwner</td>
+                        <td>@r.Rm</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="small text-muted">@Model.Data.Due.Count record@(Model.Data.Due.Count == 1 ? "" : "s")</div>
+</section>
+
+<section aria-labelledby="riskTitle">
+    <h2 class="h6" id="riskTitle">SLA risks <span class="text-muted small">(planned go-live later than the SLA target, or already past)</span></h2>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light"><tr><th>Type</th><th>Ref No</th><th>Title</th><th>Stage</th><th>Status</th><th>Priority</th><th>Planned Go-live</th><th>SLA Target</th><th>Gap</th><th>SLA Status</th><th>Tech Owner</th></tr></thead>
+            <tbody>
+                @if (Model.Data.SlaRisks.Count == 0)
+                {
+                    <tr><td colspan="11" class="text-center text-muted">No SLA risks.</td></tr>
+                }
+                @foreach (var f in Model.Data.SlaRisks)
+                {
+                    var r = f.Record;
+                    var gap = r.Sla?.SlaGapDays is { } g ? (g > 0 ? $"+{g}d" : $"{g}d") : "";
+                    <tr data-href="@Url.Action("Details", Ctl(f.Kind), new { id = r.Id })">
+                        <td>@TypeLabel(f.Kind)</td>
+                        <td>@f.RefNo</td>
+                        <td class="td-wrap"><a asp-controller="@Ctl(f.Kind)" asp-action="Details" asp-route-id="@r.Id">@r.Title</a></td>
+                        <td>@r.Stage</td>
+                        <td>@r.Status</td>
+                        <td>@r.Priority</td>
+                        <td>@LegacyFormat.Date(r.DeploymentPlannedEndDate)</td>
+                        <td>@r.Sla?.SlaTargetDate</td>
+                        <td>@gap</td>
+                        <td><span class="badge @DisplayFormatter.SlaFlagClass(r.Sla?.SlaFlag)">@r.Sla?.SlaFlag</span></td>
+                        <td>@r.TechOwner</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="small text-muted">@Model.Data.SlaRisks.Count record@(Model.Data.SlaRisks.Count == 1 ? "" : "s")</div>
+</section>
+

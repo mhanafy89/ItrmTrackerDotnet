@@ -1,0 +1,47 @@
+@model LookupsViewModel
+@{
+    ViewData["Title"] = "Manage Lookups";
+}
+<h1 class="h4 mb-3">Manage Lookups</h1>
+<div class="row g-3">
+    <nav class="col-md-3" aria-label="Lookup types">
+        <div class="list-group">
+            @foreach (var t in Model.Types)
+            {
+                <a class="list-group-item list-group-item-action @(t.Key == Model.Active.Key ? "active" : "")" asp-action="Index" asp-route-type="@t.Key" aria-current="@(t.Key == Model.Active.Key ? "page" : null)">@t.Label</a>
+            }
+        </div>
+    </nav>
+    <section class="col-md-9" aria-labelledby="lookupTitle">
+        <h2 class="h5" id="lookupTitle">@Model.Active.Label</h2>
+        <form method="post" asp-action="Create" class="input-group mb-3">
+            <input type="hidden" name="Type" value="@Model.Active.Key" />
+            <input type="text" class="form-control" name="Name" maxlength="100" placeholder="New item name..." aria-label="New item name" required />
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+        <ul class="list-group">
+            @if (Model.Items.Count == 0)
+            {
+                <li class="list-group-item text-muted">No values yet.</li>
+            }
+            @foreach (var item in Model.Items)
+            {
+                <li class="list-group-item d-flex flex-wrap align-items-center gap-2">
+                    <form method="post" asp-action="Rename" class="d-flex flex-grow-1 gap-2">
+                        <input type="hidden" name="Type" value="@Model.Active.Key" />
+                        <input type="hidden" name="Id" value="@item.Id" />
+                        <input type="text" class="form-control form-control-sm" name="Name" value="@item.Name" maxlength="100" aria-label="Rename @item.Name" required />
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                    </form>
+                    <form method="post" asp-action="Delete" asp-route-type="@Model.Active.Key" asp-route-id="@item.Id" data-confirm="Delete &quot;@item.Name&quot;? Values still used by records can't be deleted.">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </li>
+            }
+        </ul>
+        @if (Model.Active.HasSortOrder)
+        {
+            <p class="small text-muted mt-2">New values are added with sort order 0 (the original behaviour); the display order is sort order, then name.</p>
+        }
+    </section>
+</div>

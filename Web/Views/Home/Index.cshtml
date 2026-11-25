@@ -1,0 +1,49 @@
+@model DashboardData
+@{
+    ViewData["Title"] = "Dashboard";
+    var trendMax = Math.Max(1, Model.MonthlyTrend.Count == 0 ? 1 : Model.MonthlyTrend.Max(t => Math.Max(t.Created, t.Closed)));
+}
+<h1 class="h4 mb-3">Dashboard</h1>
+
+<section aria-label="Key figures" class="kpi-grid mb-4">
+    @foreach (var tile in Model.Tiles)
+    {
+        <div class="kpi-tile @(tile.Variant == "danger" ? "kpi-danger" : tile.Variant == "warning" ? "kpi-warning" : "")">
+            <div class="kpi-num">@tile.Value</div>
+            <div class="kpi-lbl">@tile.Label</div>
+        </div>
+    }
+</section>
+
+<div class="row g-3">
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Business Requests by Stage", Model.BrByStage)' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Business Requests by Status", Model.BrByStatus)' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Business Requests by Business Unit", Model.BrByUnit)' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Incidents by Status", Model.IncByStatus)' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Open Business Requests by SLA Status", Model.BrBySla)' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Open Incidents by SLA Status", Model.IncBySla)' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Remaining SLA Days by Stage", Model.SlaDaysByStage)' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Average Time to Close by Business Unit", Model.AvgCloseByUnit, "d")' /></div>
+    <div class="col-md-6 col-xl-4"><partial name="_Breakdown" model='new BreakdownPanel("Average Time to Close by Business Category", Model.AvgCloseByCategory, "d")' /></div>
+    <div class="col-12 col-xl-6">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Monthly Volume — Created vs Closed (last 6 months)</div>
+            <div class="card-body">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th scope="col">Month</th><th scope="col">Created</th><th scope="col">Closed</th></tr></thead>
+                    <tbody>
+                        @foreach (var t in Model.MonthlyTrend)
+                        {
+                            <tr>
+                                <td>@t.Label</td>
+                                <td><div class="trend-bar-wrap"><div class="trend-bar trend-created" style="width:@((int)Math.Round(t.Created * 100.0 / trendMax))%"></div><span>@t.Created</span></div></td>
+                                <td><div class="trend-bar-wrap"><div class="trend-bar trend-closed" style="width:@((int)Math.Round(t.Closed * 100.0 / trendMax))%"></div><span>@t.Closed</span></div></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

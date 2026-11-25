@@ -1,0 +1,225 @@
+@model TrackerDetailsViewModel
+@inject DisplayFormatter Format
+@{
+    var sla = Model.StageSla;
+    var id = Model.Record.Id;
+    var canWrite = Model.CanWrite;
+}
+
+@{
+    void Bar(double? pct, string? health)
+    {
+        if (pct is null) { <span class="text-muted">&mdash;</span> return; }
+        var width = Math.Min(pct.Value, 100);
+        <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1 util-bar" role="progressbar" aria-label="Utilization" aria-valuenow="@((int)width)" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar @(health == SlaHealth.Breached ? "bg-danger" : health == SlaHealth.AtRisk ? "bg-warning" : "bg-success")" style="width:@(width.ToString(System.Globalization.CultureInfo.InvariantCulture))%"></div>
+            </div>
+            <span class="small">@DisplayFormatter.Pct(pct)</span>
+        </div>
+    }
+
+    async Task DirectAction(StageMetrics s, string status, string label, string css = "btn-outline-primary")
+    {
+        <form method="post" asp-controller="StageSla" asp-action="Change" asp-route-id="@id" class="d-inline">
+            <input type="hidden" name="Stage" value="@s.Stage" />
+            <input type="hidden" name="Status" value="@status" />
+            <button type="submit" class="btn btn-sm @css">@label</button>
+        </form>
+    }
+
+    void DialogAction(StageMetrics s, string status, string label, string fields, string css = "btn-outline-secondary", bool danger = false)
+    {
+        <button type="button" class="btn btn-sm @css" data-bs-toggle="modal" data-bs-target="#stageActionModal"
+                data-stage="@s.Stage" data-status="@status" data-fields="@fields" data-title="@label — @s.Stage" data-danger="@(danger ? "1" : "0")"
+                data-planned="@(s.PlannedEffort?.ToString(System.Globalization.CultureInfo.InvariantCulture))">@label</button>
+    }
+}
+
+<section class="card shadow-sm mb-3" id="stage-sla" aria-labelledby="stageSlaTitle">
+    <h2 class="card-header h6" id="stageSlaTitle">Stage SLA (effort-driven)</h2>
+    <div class="card-body">
+        @if (Model.StageSlaError is not null)
+        {
+            <div class="alert alert-warning mb-0">@Model.StageSlaError</div>
+        }
+        else if (sla is not null)
+        {
+            var req = sla.Request;
+            <div class="row g-3 mb-3">
+                <div class="col-lg-6">
+                    <h3 class="h6">Current stage</h3>
+                    <dl class="row small mb-0">
+                        <dt class="col-6">Stage</dt><dd class="col-6">@sla.CurrentStage</dd>
+                        <dt class="col-6">Status</dt><dd class="col-6"><span class="badge @DisplayFormatter.StageStatusClass(sla.Status)">@sla.Status</span></dd>
+                        <dt class="col-6">SLA health</dt><dd class="col-6"><span class="badge @DisplayFormatter.HealthClass(sla.SlaState)">@(sla.SlaState ?? "—")</span></dd>
+                        <dt class="col-6">Planned effort</dt><dd class="col-6">@DisplayFormatter.Num(sla.PlannedEffort) d</dd>
+                        <dt class="col-6">Consumed (working days)</dt><dd class="col-6">@DisplayFormatter.Num(sla.ActualConsumed) d</dd>
+                        <dt class="col-6">Remaining effort</dt><dd class="col-6">@DisplayFormatter.Num(sla.Remaining) d</dd>
+                        <dt class="col-6">Hold days</dt><dd class="col-6">@DisplayFormatter.Num(sla.HoldDays) d</dd>
+                        <dt class="col-6">Priority-adjusted target</dt><dd class="col-6">@DisplayFormatter.Num(sla.ExpectedSlaDays) d <span class="text-muted">(@(sla.Priority ?? "no priority"), factor @DisplayFormatter.Num(sla.PriorityFactor) @sla.PriorityFactorMode)</span></dd>
+                        <dt class="col-6">Expected stage completion</dt><dd class="col-6">@(sla.ExpectedCompletionDate ?? "—")</dd>
+                    </dl>
+                </div>
+                <div class="col-lg-6">
+                    <h3 class="h6">Request totals</h3>
+                    <dl class="row small mb-0">
+                        <dt class="col-6">Total planned</dt><dd class="col-6">@DisplayFormatter.Num(req.TotalPlannedDays) d</dd>
+                        <dt class="col-6">Total consumed</dt><dd class="col-6">@DisplayFormatter.Num(req.TotalConsumedDays) d</dd>
+                        <dt class="col-6">Total remaining</dt><dd class="col-6">@DisplayFormatter.Num(req.TotalRemainingDays) d</dd>
+                        <dt class="col-6">Total hold time</dt><dd class="col-6">@DisplayFormatter.Num(req.TotalHoldDays) d</dd>
+                        <dt class="col-6">SLA utilization</dt><dd class="col-6">@{ Bar(req.UtilizationPct, req.SlaHealth); }</dd>
+                        <dt class="col-6">Request SLA health</dt><dd class="col-6"><span class="badge @DisplayFormatter.HealthClass(req.SlaHealth)">@(req.SlaHealth ?? "—")</span></dd>
+                        <dt class="col-6">Expected request completion</dt><dd class="col-6">@(req.ExpectedCompletionDate ?? "—")</dd>
+                    </dl>
+                    @if (req.UnestimatedStages > 0)
+                    {
+                        <div class="alert alert-warning small py-1 mt-2 mb-0">@req.UnestimatedStages stage(s) are not estimated yet and are excluded from the totals.</div>
+                    }
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <caption class="visually-hidden">Per-stage SLA</caption>
+                    <thead class="table-light">
+                        <tr><th scope="col">Stage</th><th scope="col">Status</th><th scope="col">Plan</th><th scope="col">Target</th><th scope="col">Used</th><th scope="col">Left</th><th scope="col">Hold</th><th scope="col" class="w-25">Utilization</th>@if (canWrite) { <th scope="col">Actions</th> }</tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in sla.Stages)
+                        {
+                            <tr class="@(s.IsBackfilled ? "text-muted" : "")">
+                                <td>@s.Stage @if (s.IsBackfilled) { <span class="badge text-bg-light border" title="Created from legacy data: no effort history">backfilled</span> } @if (s.ReopenCount > 0) { <span class="badge text-bg-info">reopened @s.ReopenCount×</span> }</td>
+                                <td><span class="badge @DisplayFormatter.StageStatusClass(s.Status)">@s.Status</span></td>
+                                <td>@DisplayFormatter.Num(s.PlannedEffort)</td>
+                                <td>@DisplayFormatter.Num(s.ExpectedSlaDays)</td>
+                                <td>@DisplayFormatter.Num(s.ActualEffort)</td>
+                                <td>@DisplayFormatter.Num(s.Remaining)</td>
+                                <td>@DisplayFormatter.Num(s.HoldDays)</td>
+                                <td>@{ Bar(s.UtilizationPct, s.SlaState); }</td>
+                                @if (canWrite)
+                                {
+                                    <td class="text-nowrap">
+                                        @switch (s.Status)
+                                        {
+                                            case StageStatus.NotYetEstimated:
+                                                DialogAction(s, StageStatus.NotYetEstimated, "Estimate", "planned", "btn-outline-primary");
+                                                DialogAction(s, StageStatus.Cancelled, "Cancel", "note", "btn-outline-danger", true);
+                                                break;
+                                            case StageStatus.NotStarted:
+                                                await DirectAction(s, StageStatus.InProgress, "Start");
+                                                DialogAction(s, StageStatus.NotStarted, "Edit effort", "planned");
+                                                DialogAction(s, StageStatus.Cancelled, "Cancel", "note", "btn-outline-danger", true);
+                                                break;
+                                            case StageStatus.InProgress:
+                                                DialogAction(s, StageStatus.OnHold, "Hold", "note", "btn-outline-warning");
+                                                DialogAction(s, StageStatus.Completed, "Complete", "actual,note", "btn-outline-success");
+                                                DialogAction(s, StageStatus.InProgress, "Edit effort", "planned");
+                                                DialogAction(s, StageStatus.Cancelled, "Cancel", "note", "btn-outline-danger", true);
+                                                break;
+                                            case StageStatus.OnHold:
+                                                await DirectAction(s, StageStatus.InProgress, "Resume");
+                                                DialogAction(s, StageStatus.Completed, "Complete", "actual,note", "btn-outline-success");
+                                                DialogAction(s, StageStatus.Cancelled, "Cancel", "note", "btn-outline-danger", true);
+                                                break;
+                                            case StageStatus.Completed:
+                                                await DirectAction(s, StageStatus.InProgress, "Reopen", "btn-outline-secondary");
+                                                break;
+                                            case StageStatus.Cancelled:
+                                                await DirectAction(s, StageStatus.NotStarted, "Reinstate", "btn-outline-secondary");
+                                                break;
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.StageSlaHistory is { } hist)
+            {
+                <details class="mt-2">
+                    <summary class="small fw-semibold">SLA history</summary>
+                    <h3 class="h6 mt-3">Status changes</h3>
+                    <div class="table-responsive">
+                        <table class="table table-sm small">
+                            <thead><tr><th scope="col">When</th><th scope="col">Stage</th><th scope="col">Change</th><th scope="col">Action</th><th scope="col">Source</th><th scope="col">Consumed</th><th scope="col">Note</th><th scope="col">By</th></tr></thead>
+                            <tbody>
+                                @foreach (var h in hist.StatusHistory)
+                                {
+                                    <tr>
+                                        <td><time class="js-local" datetime="@DisplayFormatter.Iso(h.ChangedAt)">@Format.DateTime(h.ChangedAt)</time></td>
+                                        <td>@h.StageName</td>
+                                        <td>@(h.FromStatus ?? "—") &rarr; @h.ToStatus</td>
+                                        <td>@h.Action</td>
+                                        <td>@h.Source</td>
+                                        <td>@(h.ConsumedDays?.ToString("0.##") ?? "—")</td>
+                                        <td>@h.Note</td>
+                                        <td>@h.ChangedBy</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="h6">Stage moves</h3>
+                    <ul class="small">
+                        @foreach (var m in hist.StageHistory)
+                        {
+                            <li><time class="js-local" datetime="@DisplayFormatter.Iso(m.ChangedAt)">@Format.DateTime(m.ChangedAt)</time>: @(m.FromStage ?? "—") &rarr; @m.ToStage (@m.Reason, @m.Source) @(m.ChangedBy is null ? "" : "by " + m.ChangedBy)</li>
+                        }
+                    </ul>
+                    <h3 class="h6">Hold periods</h3>
+                    <ul class="small mb-0">
+                        @foreach (var p in hist.Pauses)
+                        {
+                            <li>
+                                <time class="js-local" datetime="@DisplayFormatter.Iso(p.PausedAt)">@Format.DateTime(p.PausedAt)</time> &rarr;
+                                @if (p.ResumedAt is null) { <span class="badge text-bg-warning">still on hold</span> } else { <time class="js-local" datetime="@DisplayFormatter.Iso(p.ResumedAt)">@Format.DateTime(p.ResumedAt)</time> }
+                                @if (p.HoldDays is not null) { <span>(@DisplayFormatter.Num(p.HoldDays) working days)</span> }
+                                @if (!string.IsNullOrEmpty(p.Reason)) { <span>— @p.Reason</span> }
+                            </li>
+                        }
+                        @if (hist.Pauses.Count == 0) { <li class="text-muted">No hold periods.</li> }
+                    </ul>
+                </details>
+            }
+        }
+    </div>
+</section>
+
+@if (canWrite && sla is not null)
+{
+    <div class="modal fade" id="stageActionModal" tabindex="-1" aria-labelledby="stageActionTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post" asp-controller="StageSla" asp-action="Change" asp-route-id="@id">
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="stageActionTitle">Stage action</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="Stage" data-field="stage" />
+                    <input type="hidden" name="Status" data-field="status" />
+                    <div class="mb-2" data-group="planned">
+                        <label class="form-label" for="saPlanned">Planned effort (man-days)</label>
+                        <input type="number" class="form-control" id="saPlanned" name="PlannedEffort" min="0.01" max="999" step="0.5" data-field="planned" />
+                    </div>
+                    <div class="mb-2" data-group="actual">
+                        <label class="form-label" for="saActual">Actual effort (man-days, optional – defaults to the consumed working days)</label>
+                        <input type="number" class="form-control" id="saActual" name="ActualEffortDays" min="0" max="9999" step="0.5" />
+                    </div>
+                    <div class="mb-2" data-group="note">
+                        <label class="form-label" for="saNote">Note / reason (optional)</label>
+                        <textarea class="form-control" id="saNote" name="Note" rows="2" maxlength="500"></textarea>
+                    </div>
+                    <div class="alert alert-danger small d-none" data-group="danger">This stage will be cancelled; its remaining effort is dropped from the totals.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" data-field="submit">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+

@@ -1,0 +1,286 @@
+@model TrackerIndexViewModel
+@inject DisplayFormatter Format
+@{
+    var meta = Model.Meta;
+    ViewData["Title"] = meta.Plural;
+    var q = Model.Query;
+    var isBr = !meta.IsIncident;
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+
+    IReadOnlyList<(string, string)> Opts(string key) => Model.Lookups.Of(key).Select(i => (i.Id.ToString(), i.Name)).ToList();
+    IReadOnlyCollection<string> Sel(IEnumerable<int> ids) => ids.Select(i => i.ToString()).ToList();
+
+    string SortUrl(string key)
+    {
+        var dir = q.Sort == key && q.Dir != "desc" ? "desc" : "asc";
+        var parts = Context.Request.Query.Where(kv => kv.Key != "Sort" && kv.Key != "Dir")
+            .SelectMany(kv => kv.Value.Select(v => Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(v ?? "")))
+            .Append("Sort=" + Uri.EscapeDataString(key)).Append("Dir=" + dir);
+        return Context.Request.Path + "?" + string.Join("&", parts);
+    }
+
+    string ViewUrl(string view)
+    {
+        var parts = Context.Request.Query.Where(kv => kv.Key != "View")
+            .SelectMany(kv => kv.Value.Select(v => Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(v ?? "")))
+            .Append("View=" + view);
+        return Context.Request.Path + "?" + string.Join("&", parts);
+    }
+
+    var flags = new (string Key, string Label)[] { ("newgen_related", "Newgen Related"), ("estimated", "Estimated"), ("ba_required", "BA Required"), ("brd_assigned", "BRD Assigned"), ("regulatory", "Regulatory") };
+    var view = (q.View ?? "open").ToLowerInvariant();
+}
+
+@{
+    async Task Cell(TrackerRecord r, TrackerColumn c)
+    {
+        var value = TrackerColumns.Value(r, c.Key);
+        var css = (c.Wrap ? "td-wrap" : "") + (c.IsNum ? " text-end" : "");
+        <td data-col="@c.Key" class="@css">
+            @if (c.Key == "title")
+            {
+                <a asp-action="Details" asp-route-id="@r.Id" class="fw-semibold">@r.Title</a>
+            }
+            else if (c.IsBool)
+            {
+                <span class="badge @(value is true ? "text-bg-success" : "text-bg-light border")">@(value is true ? "Yes" : "No")</span>
+            }
+            else if (c.IsDateTime)
+            {
+                var dt = c.Key == "created_at" ? r.CreatedAt : r.UpdatedAt;
+                <time class="js-local" datetime="@DisplayFormatter.Iso(dt)">@Format.DateTime(dt)</time>
+            }
+            else if (c.Key == "sla_flag")
+            {
+                if (r.Sla is not null)
+                {
+                    <span class="badge @DisplayFormatter.SlaFlagClass(r.Sla.SlaFlag)">@r.Sla.SlaFlag</span>
+                }
+            }
+            else
+            {
+                var text = TrackerColumns.Text(r, c);
+                if (c.MaxLen is { } max && text.Length > max)
+                {
+                    <span title="@text">@(text[..max])&hellip;</span>
+                }
+                else
+                {
+                    @text
+                }
+            }
+        </td>
+    }
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+    <h1 class="h4 mb-0">@meta.Plural</h1>
+    <div class="d-flex flex-wrap gap-2" role="toolbar" aria-label="Table actions">
+        @if (Model.CanWrite)
+        {
+            <a class="btn btn-sm btn-primary" asp-action="Create">+ New @(meta.IsIncident ? "Incident" : "Request")</a>
+        }
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Export</button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-export="displayed" data-url="@Url.Action("Export")">Displayed Columns</a></li>
+                <li><a class="dropdown-item" href="#" data-export="all" data-url="@Url.Action("Export")">All Columns</a></li>
+            </ul>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="copyTableBtn">Copy</button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-copy="displayed" data-url="@Url.Action("CopyText")">Displayed Columns</a></li>
+                <li><a class="dropdown-item" href="#" data-copy="all" data-url="@Url.Action("CopyText")">All Columns</a></li>
+            </ul>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">Columns</button>
+            <div class="dropdown-menu p-2 col-chooser" id="colChooser" data-storage-key="@meta.ColumnStorageKey">
+                @foreach (var c in Model.Columns)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="@c.Key" id="col-@c.Key" data-default="@(c.DefaultVisible ? "1" : "0")" disabled="@c.Required" />
+                        <label class="form-check-label" for="col-@c.Key">@c.Label</label>
+                    </div>
+                }
+                <button type="button" class="btn btn-sm btn-link px-0" data-cols-reset>Reset to defaults</button>
+            </div>
+        </div>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Row density">
+            <button type="button" class="btn btn-outline-secondary" data-density="comfortable">Comfortable</button>
+            <button type="button" class="btn btn-outline-secondary" data-density="compact">Compact</button>
+        </div>
+    </div>
+</div>
+
+<form method="get" class="card card-body shadow-sm mb-2 py-2 filters" id="filterForm" aria-label="Filters">
+    <input type="hidden" name="View" value="@view" />
+    @if (!string.IsNullOrEmpty(q.Sort))
+    {
+        <input type="hidden" name="Sort" value="@q.Sort" />
+        <input type="hidden" name="Dir" value="@q.Dir" />
+    }
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <input type="search" name="Search" value="@q.Search" class="form-control form-control-sm w-auto" placeholder="Search @meta.RefLabel, title, description, CR…" aria-label="Search" size="34" />
+        <div class="btn-group btn-group-sm" role="group" aria-label="Open or closed">
+            <a class="btn btn-outline-primary @(view == "open" ? "active" : "")" href="@ViewUrl("open")">Open</a>
+            <a class="btn btn-outline-primary @(view == "closed" ? "active" : "")" href="@ViewUrl("closed")">Closed</a>
+            <a class="btn btn-outline-primary @(view == "all" ? "active" : "")" href="@ViewUrl("all")">All</a>
+        </div>
+        <partial name="_MultiSelect" model='new MultiSelectModel("StageIds", "Stage", Opts("stages"), Sel(q.StageIds))' />
+        <partial name="_MultiSelect" model='new MultiSelectModel("StatusIds", "Status", Opts("statuses"), Sel(q.StatusIds))' />
+        <partial name="_MultiSelect" model='new MultiSelectModel("PriorityIds", "Priority", Opts("priorities"), Sel(q.PriorityIds))' />
+        <partial name="_MultiSelect" model='new MultiSelectModel("SlaFlags", "SLA Status", SlaFlags.All.Select(f => (f, f)).ToList(), q.SlaFlags)' />
+        <partial name="_MultiSelect" model='new MultiSelectModel("BusinessUnitIds", "Business Unit", Opts("business-units"), Sel(q.BusinessUnitIds), true)' />
+        @if (isBr)
+        {
+            <partial name="_MultiSelect" model='new MultiSelectModel("BusinessCategoryIds", "Business Category", Opts("business-categories"), Sel(q.BusinessCategoryIds), true)' />
+        }
+        <partial name="_MultiSelect" model='new MultiSelectModel("RequesterIds", "Requester", Opts("requesters"), Sel(q.RequesterIds), true)' />
+        <partial name="_MultiSelect" model='new MultiSelectModel("TechOwnerIds", "Tech Owner", Opts("tech-owners"), Sel(q.TechOwnerIds), true)' />
+        <partial name="_MultiSelect" model='new MultiSelectModel("SystemIds", "System", Opts("systems"), Sel(q.SystemIds), true)' />
+        <partial name="_MultiSelect" model='new MultiSelectModel("RmIds", "RM", Opts("rms"), Sel(q.RmIds), true)' />
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+        @if (isBr)
+        {
+            <span class="small text-muted">Flags:</span>
+            @foreach (var (key, label) in flags)
+            {
+                <input type="checkbox" class="btn-check" name="Flags" value="@key" id="flag-@key" checked="@q.Flags.Contains(key)" autocomplete="off" />
+                <label class="btn btn-sm btn-outline-secondary" for="flag-@key">@label</label>
+            }
+        }
+        <input type="checkbox" class="btn-check" name="Stale" value="true" id="staleFilter" checked="@q.Stale" autocomplete="off" />
+        <label class="btn btn-sm btn-outline-warning" for="staleFilter">Stale (@TrackerRules.StaleThresholdDays+ days)</label>
+        <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+        @if (q.HasActiveFilters)
+        {
+            <a class="btn btn-sm btn-link" asp-action="Index" asp-route-View="@view">Clear filters</a>
+        }
+        <div class="dropdown ms-auto">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">Saved filters</button>
+            <div class="dropdown-menu dropdown-menu-end p-2 saved-filters" id="savedFilters" data-scope="@meta.Controller">
+                <div class="input-group input-group-sm mb-2">
+                    <input type="text" class="form-control" maxlength="50" placeholder="Name this filter…" aria-label="Saved filter name" data-saved-name />
+                    <button class="btn btn-outline-primary" type="button" data-saved-save>Save</button>
+                </div>
+                <ul class="list-unstyled mb-0" data-saved-list></ul>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="bulk-bar alert alert-primary py-2 d-none" id="bulkBar" role="region" aria-label="Selected records">
+    <span><strong data-selected-count>0</strong> selected</span>
+    @if (Model.CanWrite)
+    {
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#bulkModal">Bulk edit</button>
+    }
+    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailModal">Email via Outlook</button>
+    <button type="button" class="btn btn-sm btn-link" data-clear-selection>Clear selection</button>
+</div>
+
+<div class="table-responsive register-wrap">
+    <table class="table table-hover table-sm align-middle register" id="registerTable">
+        <thead class="table-light sticky-top">
+            <tr>
+                <th scope="col" class="col-select"><input type="checkbox" class="form-check-input" aria-label="Select all" data-select-all /></th>
+                <th scope="col" class="col-follow"><span class="visually-hidden">Follow</span></th>
+                @foreach (var c in Model.Columns)
+                {
+                    var arrow = q.Sort == c.Key ? (q.Dir == "desc" ? " \u25BC" : " \u25B2") : "";
+                    <th scope="col" data-col="@c.Key" aria-sort="@(q.Sort == c.Key ? (q.Dir == "desc" ? "descending" : "ascending") : "none")">
+                        <a href="@SortUrl(c.Key)" class="sort-link">@c.Label@arrow</a>
+                    </th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Rows.Count == 0)
+            {
+                <tr><td colspan="@(Model.Columns.Count + 2)" class="text-center text-muted py-4">No records match the current filters.</td></tr>
+            }
+            @foreach (var r in Model.Rows)
+            {
+                var followed = Model.FollowedIds.Contains(r.Id);
+                <tr data-href="@Url.Action("Details", new { id = r.Id })" class="@(r.IsStale ? "row-stale" : "")">
+                    <td class="col-select"><input type="checkbox" class="form-check-input row-select" value="@r.Id" aria-label="Select @(r.RefNo ?? r.Title)" /></td>
+                    <td class="col-follow">
+                        <form method="post" asp-action="@(followed ? "Unfollow" : "Follow")" asp-route-id="@r.Id" class="d-inline">
+                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+                            <button type="submit" class="btn btn-link p-0 follow-star @(followed ? "following" : "")" title="@(followed ? "Unfollow" : "Follow")" aria-label="@(followed ? "Unfollow" : "Follow") @(r.RefNo ?? r.Title)">@(followed ? "\u2605" : "\u2606")</button>
+                        </form>
+                    </td>
+                    @foreach (var c in Model.Columns)
+                    {
+                        await Cell(r, c);
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="small text-muted">@Model.Rows.Count record@(Model.Rows.Count == 1 ? "" : "s")</div>
+
+@if (Model.CanWrite)
+{
+    <div class="modal fade" id="bulkModal" tabindex="-1" aria-labelledby="bulkTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post" asp-action="BulkEdit" data-selection-form>
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="bulkTitle">Bulk edit <span class="text-muted small">(<span data-selected-count>0</span> records)</span></h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                    <div data-selection-ids></div>
+                    @foreach (var field in Model.BulkFields)
+                    {
+                        var (lookupKey, label) = BulkFieldInfo.Map[field];
+                        <div class="mb-2">
+                            <label class="form-label small mb-0" for="bulk-@field">@label</label>
+                            <select class="form-select form-select-sm" id="bulk-@field" name="Fields[@field]">
+                                <option value="">-- No change --</option>
+                                @foreach (var item in Model.Lookups.Of(lookupKey))
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply to selected</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form class="modal-content" method="post" asp-action="EmailDraft" data-selection-form data-email-form>
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="emailTitle">Email via Outlook <span class="text-muted small">(<span data-selected-count>0</span> records)</span></h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div data-selection-ids></div>
+                <input type="hidden" name="Columns" data-visible-columns />
+                <div class="mb-2"><label class="form-label small mb-0" for="emailTo">To</label><input class="form-control form-control-sm" id="emailTo" name="To" placeholder="name@example.com; other@example.com" /></div>
+                <div class="mb-2"><label class="form-label small mb-0" for="emailCc">CC</label><input class="form-control form-control-sm" id="emailCc" name="Cc" /></div>
+                <div class="mb-2"><label class="form-label small mb-0" for="emailSubject">Subject</label><input class="form-control form-control-sm" id="emailSubject" name="Subject" data-default-subject="ITRM Tracker - {n} @(meta.IsIncident ? "incident" : "business request"){s}" /></div>
+                <div class="mb-2"><label class="form-label small mb-0" for="emailMessage">Message</label><textarea class="form-control form-control-sm" id="emailMessage" name="Message" rows="4"></textarea></div>
+                <p class="small text-muted mb-0">A draft (.eml) is downloaded; open it to edit and send it from Outlook. The selected records are included as a table with the displayed columns.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-copy-selected>Copy table</button>
+                <button type="submit" class="btn btn-primary">Open in Outlook</button>
+            </div>
+        </form>
+    </div>
+</div>
+

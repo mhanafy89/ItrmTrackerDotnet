@@ -1,0 +1,44 @@
+﻿@model ImportStepViewModel
+@{
+    ViewData["Title"] = "Import – map columns";
+    var s = Model.Session;
+    var first = s.File.Rows.FirstOrDefault();
+}
+<h1 class="h4">Import &amp; Merge – @Model.Target.Label</h1>
+<partial name="_Steps" model="3" />
+<p class="small text-muted">File <strong>@s.File.Filename</strong> (@s.File.FileType): @s.File.TotalRows rows, @s.File.Headers.Count columns. Columns were auto-detected from the header names; adjust the mapping as needed. <span class="badge text-bg-dark">KEY</span> fields are used to find existing records (first non-blank key wins).</p>
+<form method="post" asp-action="Map" asp-route-token="@s.Token">
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead class="table-light"><tr><th>Target field</th><th>Source column</th><th>Sample value (first row)</th></tr></thead>
+            <tbody>
+                @foreach (var f in Model.Target.Fields)
+                {
+                    var mapped = s.Mapping.TryGetValue(f.Field, out var h) ? h : null;
+                    var isKey = Model.Target.IdKeys.Any(k => k.Field == f.Field);
+                    <tr class="@(mapped is null ? "" : "table-success")">
+                        <th scope="row" class="fw-normal">
+                            <label for="map-@f.Field">@f.Label</label>
+                            @if (f.Required) { <span class="text-danger" title="Required for new records">*</span> }
+                            @if (isKey) { <span class="badge text-bg-dark">KEY</span> }
+                        </th>
+                        <td>
+                            <select class="form-select form-select-sm" id="map-@f.Field" name="mapping[@f.Field]">
+                                <option value="">— not imported —</option>
+                                @foreach (var header in s.File.Headers)
+                                {
+                                    <option value="@header" selected="@(header == mapped)">@header</option>
+                                }
+                            </select>
+                        </td>
+                        <td class="small text-muted td-wrap">@(mapped is not null && first is not null && first.TryGetValue(mapped, out var sample) ? sample : "")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+        <button type="submit" class="btn btn-primary">Preview</button>
+    </div>
+</form>

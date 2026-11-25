@@ -1,0 +1,192 @@
+@model SlaSettingsViewModel
+@{
+    ViewData["Title"] = "SLA Settings";
+    var f = Model.Form;
+    var days = new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="h4 mb-0">SLA Settings</h1>
+    <form method="post" asp-action="Reset" data-confirm="Reset every SLA assumption and setting to the built-in defaults?">
+        <button type="submit" class="btn btn-sm btn-outline-danger">Reset to defaults</button>
+    </form>
+</div>
+
+@if (Model.Errors.Count > 0)
+{
+    <div class="alert alert-danger" role="alert"><ul class="mb-0">@foreach (var e in Model.Errors) { <li>@e</li> }</ul></div>
+}
+
+<form method="post" asp-action="Index" data-reindex-form>
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-stages" type="button" role="tab">Stages</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-priorities" type="button" role="tab">Priorities</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-categories" type="button" role="tab">Categories</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-statuses" type="button" role="tab">Statuses</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-general" type="button" role="tab">General</button></li>
+    </ul>
+    <div class="tab-content border border-top-0 p-3 mb-3 bg-body">
+        <div class="tab-pane fade show active" id="tab-stages" role="tabpanel">
+            <p class="small text-muted">Stage durations in working days (requests / incidents), the planned effort used to estimate new stages, and whether the stage belongs to the standard pipeline.</p>
+            <table class="table table-sm align-middle" data-collection="Stages">
+                <thead><tr><th>Name</th><th>Order</th><th>Pipeline</th><th>Request days</th><th>Incident days</th><th>Effort (man-days)</th><th></th></tr></thead>
+                <tbody>
+                    @for (var i = 0; i < f.Stages.Count; i++)
+                    {
+                        <tr data-row>
+                            <td><input class="form-control form-control-sm" name="Form.Stages[@i].Name" value="@f.Stages[i].Name" maxlength="200" aria-label="Stage name" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Stages[@i].StageOrder" value="@f.Stages[i].StageOrder" min="0" max="99" step="1" aria-label="Order" /></td>
+                            <td><input class="form-check-input" type="checkbox" name="Form.Stages[@i].IsPipeline" value="true" checked="@f.Stages[i].IsPipeline" aria-label="Pipeline" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Stages[@i].BrDays" value="@f.Stages[i].BrDays" min="0" max="365" step="1" aria-label="Request days" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Stages[@i].IncidentDays" value="@f.Stages[i].IncidentDays" min="0" max="365" step="1" aria-label="Incident days" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Stages[@i].EffortDays" value="@f.Stages[i].EffortDays" min="0" max="999" step="0.5" aria-label="Effort" /></td>
+                            <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <template data-row-template="Stages">
+                <tr data-row>
+                    <td><input class="form-control form-control-sm" name="Form.Stages[0].Name" maxlength="200" aria-label="Stage name" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Stages[0].StageOrder" value="0" min="0" max="99" aria-label="Order" /></td>
+                    <td><input class="form-check-input" type="checkbox" name="Form.Stages[0].IsPipeline" value="true" checked aria-label="Pipeline" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Stages[0].BrDays" value="0" min="0" max="365" aria-label="Request days" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Stages[0].IncidentDays" value="0" min="0" max="365" aria-label="Incident days" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Stages[0].EffortDays" value="0" min="0" max="999" step="0.5" aria-label="Effort" /></td>
+                    <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                </tr>
+            </template>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-add-row="Stages">+ Add stage</button>
+        </div>
+
+        <div class="tab-pane fade" id="tab-priorities" role="tabpanel">
+            <p class="small text-muted">Priority factor applied to stage targets (see “Priority factor mode” under General), response time and update cadence.</p>
+            <table class="table table-sm align-middle" data-collection="Priorities">
+                <thead><tr><th>Name</th><th>Factor</th><th>Response hours</th><th>Update every (days)</th><th></th></tr></thead>
+                <tbody>
+                    @for (var i = 0; i < f.Priorities.Count; i++)
+                    {
+                        <tr data-row>
+                            <td><input class="form-control form-control-sm" name="Form.Priorities[@i].Name" value="@f.Priorities[i].Name" maxlength="200" aria-label="Priority name" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Priorities[@i].Factor" value="@f.Priorities[i].Factor" min="0.01" max="10" step="0.01" aria-label="Factor" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Priorities[@i].ResponseHours" value="@f.Priorities[i].ResponseHours" min="0" max="999" step="0.5" aria-label="Response hours" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Priorities[@i].UpdateDays" value="@f.Priorities[i].UpdateDays" min="0" max="365" step="1" aria-label="Update cadence" /></td>
+                            <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <template data-row-template="Priorities">
+                <tr data-row>
+                    <td><input class="form-control form-control-sm" name="Form.Priorities[0].Name" maxlength="200" aria-label="Priority name" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Priorities[0].Factor" value="1" min="0.01" max="10" step="0.01" aria-label="Factor" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Priorities[0].ResponseHours" value="8" min="0" max="999" step="0.5" aria-label="Response hours" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Priorities[0].UpdateDays" value="7" min="0" max="365" aria-label="Update cadence" /></td>
+                    <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                </tr>
+            </template>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-add-row="Priorities">+ Add priority</button>
+        </div>
+
+        <div class="tab-pane fade" id="tab-categories" role="tabpanel">
+            <p class="small text-muted">Business category factor (legacy SLA calculation of business requests).</p>
+            <table class="table table-sm align-middle" data-collection="Categories">
+                <thead><tr><th>Name</th><th>Factor</th><th></th></tr></thead>
+                <tbody>
+                    @for (var i = 0; i < f.Categories.Count; i++)
+                    {
+                        <tr data-row>
+                            <td><input class="form-control form-control-sm" name="Form.Categories[@i].Name" value="@f.Categories[i].Name" maxlength="200" aria-label="Category name" /></td>
+                            <td><input class="form-control form-control-sm" type="number" name="Form.Categories[@i].Factor" value="@f.Categories[i].Factor" min="0.01" max="10" step="0.01" aria-label="Factor" /></td>
+                            <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <template data-row-template="Categories">
+                <tr data-row>
+                    <td><input class="form-control form-control-sm" name="Form.Categories[0].Name" maxlength="200" aria-label="Category name" /></td>
+                    <td><input class="form-control form-control-sm" type="number" name="Form.Categories[0].Factor" value="1" min="0.01" max="10" step="0.01" aria-label="Factor" /></td>
+                    <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                </tr>
+            </template>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-add-row="Categories">+ Add category</button>
+        </div>
+
+        <div class="tab-pane fade" id="tab-statuses" role="tabpanel">
+            <p class="small text-muted">Clock state of each status: Active (clock runs), Paused (clock stopped) or Done (closed).</p>
+            <table class="table table-sm align-middle" data-collection="Statuses">
+                <thead><tr><th>Name</th><th>State</th><th></th></tr></thead>
+                <tbody>
+                    @for (var i = 0; i < f.Statuses.Count; i++)
+                    {
+                        <tr data-row>
+                            <td><input class="form-control form-control-sm" name="Form.Statuses[@i].Name" value="@f.Statuses[i].Name" maxlength="200" aria-label="Status name" /></td>
+                            <td>
+                                <select class="form-select form-select-sm" name="Form.Statuses[@i].State" aria-label="State">
+                                    @foreach (var s in new[] { "Active", "Paused", "Done" })
+                                    {
+                                        <option value="@s" selected="@(f.Statuses[i].State == s)">@s</option>
+                                    }
+                                </select>
+                            </td>
+                            <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <template data-row-template="Statuses">
+                <tr data-row>
+                    <td><input class="form-control form-control-sm" name="Form.Statuses[0].Name" maxlength="200" aria-label="Status name" /></td>
+                    <td><select class="form-select form-select-sm" name="Form.Statuses[0].State" aria-label="State"><option>Active</option><option>Paused</option><option>Done</option></select></td>
+                    <td><button type="button" class="btn btn-sm btn-link text-danger" data-remove-row>Remove</button></td>
+                </tr>
+            </template>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-add-row="Statuses">+ Add status</button>
+        </div>
+
+        <div class="tab-pane fade" id="tab-general" role="tabpanel">
+            <fieldset class="mb-3">
+                <legend class="h6">Weekend days</legend>
+                @for (var d = 0; d < 7; d++)
+                {
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="wd@(d)" name="Form.WeekendDays" value="@d" checked="@f.WeekendDays.Contains(d.ToString())" />
+                        <label class="form-check-label" for="wd@(d)">@days[d]</label>
+                    </div>
+                }
+            </fieldset>
+            <div class="row g-3">
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="atRisk">At-risk threshold (%)</label>
+                    <input class="form-control" type="number" id="atRisk" name="Form.AtRiskThresholdPct" value="@f.AtRiskThresholdPct" min="0.01" max="1000" step="any" />
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="breach">Breach threshold (%)</label>
+                    <input class="form-control" type="number" id="breach" name="Form.BreachThresholdPct" value="@f.BreachThresholdPct" min="0.01" max="1000" step="any" />
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="mode">Priority factor mode</label>
+                    <select class="form-select" id="mode" name="Form.PriorityFactorMode">
+                        <option value="multiplier" selected="@(f.PriorityFactorMode == "multiplier")">Multiply planned effort by factor</option>
+                        <option value="divisor" selected="@(f.PriorityFactorMode == "divisor")">Divide planned effort by factor</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="enforce">Enforce stage order</label>
+                    <select class="form-select" id="enforce" name="Form.EnforceStageOrder">
+                        <option value="true" selected="@(f.EnforceStageOrder == "true")">Yes</option>
+                        <option value="false" selected="@(f.EnforceStageOrder == "false")">No</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label" for="autostart">Auto-start next stage</label>
+                    <select class="form-select" id="autostart" name="Form.AutoStartNextStage">
+                        <option value="true" selected="@(f.AutoStartNextStage == "true")">Yes</option>
+                        <option value="false" selected="@(f.AutoStartNextStage == "false")">No</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save SLA settings</button>
+</form>

@@ -1,0 +1,28 @@
+﻿@model ImportStepViewModel
+@{
+    ViewData["Title"] = "Import – summary";
+    var res = Model.Session.Result!;
+}
+<h1 class="h4">Import &amp; Merge – @Model.Target.Label</h1>
+<partial name="_Steps" model="9" />
+<section class="kpi-grid mb-3" aria-label="Merge summary">
+    <div class="kpi-tile"><div class="kpi-num">@res.Summary.Total</div><div class="kpi-lbl">Rows</div></div>
+    <div class="kpi-tile"><div class="kpi-num text-success">@res.Summary.New</div><div class="kpi-lbl">Inserted</div></div>
+    <div class="kpi-tile"><div class="kpi-num text-primary">@res.Summary.Updated</div><div class="kpi-lbl">Updated</div></div>
+    <div class="kpi-tile"><div class="kpi-num">@res.Summary.Duplicate</div><div class="kpi-lbl">Duplicates</div></div>
+    <div class="kpi-tile"><div class="kpi-num">@res.Summary.Skipped</div><div class="kpi-lbl">Skipped</div></div>
+    <div class="kpi-tile @(res.Summary.Invalid > 0 ? "kpi-warning" : "")"><div class="kpi-num">@res.Summary.Invalid</div><div class="kpi-lbl">Invalid</div></div>
+    <div class="kpi-tile @(res.Summary.Error > 0 ? "kpi-danger" : "")"><div class="kpi-num">@res.Summary.Error</div><div class="kpi-lbl">Errors</div></div>
+</section>
+@if (res.Errors.Count > 0)
+{
+    <div class="alert alert-danger">
+        <h2 class="h6">Rows that failed</h2>
+        <ul class="mb-0">@foreach (var e in res.Errors) { <li>Row @(e.RowIndex + 1) @(string.IsNullOrEmpty(e.Key) ? "" : $"({e.Key})"): @e.Message</li> }</ul>
+    </div>
+}
+<div class="d-flex gap-2">
+    <a class="btn btn-primary" asp-action="HistoryDetail" asp-route-id="@res.BatchId">View import #@res.BatchId</a>
+    <a class="btn btn-outline-secondary" asp-action="Index">Import another file</a>
+    <a class="btn btn-outline-secondary" asp-controller="@(Model.Target.Kind == TrackerKind.Incident ? "Incidents" : "BusinessRequests")" asp-action="Index">Go to @Model.Target.Label</a>
+</div>

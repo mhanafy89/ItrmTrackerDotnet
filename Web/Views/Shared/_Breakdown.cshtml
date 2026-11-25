@@ -1,0 +1,27 @@
+@model BreakdownPanel
+@{
+    var max = Model.Items.Count == 0 ? 0 : Model.Items.Max(i => i.Value);
+}
+<div class="card h-100 shadow-sm">
+    <div class="card-header fw-semibold">@Model.Title</div>
+    <div class="card-body">
+        @if (Model.Items.Count == 0)
+        {
+            <div class="text-muted small">No data.</div>
+        }
+        else
+        {
+            @foreach (var item in Model.Items)
+            {
+                var pct = max > 0 ? (int)Math.Round(item.Value / max * 100) : 0;
+                <div class="breakdown-row">
+                    <span class="breakdown-label" title="@item.Label">@item.Label</span>
+                    <div class="progress flex-grow-1" role="progressbar" aria-label="@item.Label" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: @pct%"></div>
+                    </div>
+                    <span class="breakdown-count">@DisplayFormatter.Num(item.Value)@Model.Suffix</span>
+                </div>
+            }
+        }
+    </div>
+</div>

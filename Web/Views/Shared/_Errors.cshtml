@@ -1,0 +1,12 @@
+@* Validation summary for model-level errors (business rule messages come back here with their original wording). *@
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" role="alert">
+        <ul class="mb-0">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).Distinct())
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}

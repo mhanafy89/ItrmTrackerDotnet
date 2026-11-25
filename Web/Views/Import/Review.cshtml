@@ -1,0 +1,82 @@
+﻿@model ImportStepViewModel
+@{
+    ViewData["Title"] = "Import – review";
+    var s = Model.Session;
+    var a = s.Analysis!;
+    string Badge(string outcome) => outcome switch { "new" => "text-bg-success", "update" => "text-bg-primary", "duplicate" => "text-bg-secondary", _ => "text-bg-danger" };
+    var canWrite = User.CanWrite();
+}
+<h1 class="h4">Import &amp; Merge – @Model.Target.Label</h1>
+<partial name="_Steps" model="7" />
+
+<section class="kpi-grid mb-3" aria-label="Comparison summary">
+    <div class="kpi-tile"><div class="kpi-num">@a.Summary.Total</div><div class="kpi-lbl">Rows</div></div>
+    <div class="kpi-tile"><div class="kpi-num text-success">@a.Summary.New</div><div class="kpi-lbl">New</div></div>
+    <div class="kpi-tile"><div class="kpi-num text-primary">@a.Summary.Update</div><div class="kpi-lbl">Changed (update)</div></div>
+    <div class="kpi-tile"><div class="kpi-num">@a.Summary.Duplicate</div><div class="kpi-lbl">Duplicate (no change)</div></div>
+    <div class="kpi-tile @(a.Summary.Invalid > 0 ? "kpi-danger" : "")"><div class="kpi-num">@a.Summary.Invalid</div><div class="kpi-lbl">Invalid</div></div>
+</section>
+
+<form method="post" asp-action="Commit" asp-route-token="@s.Token">
+    <div class="d-flex flex-wrap gap-2 mb-2 small">
+        <span>Set all decisions:</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-decide-all="suggested">Suggested</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-decide-all="skip">Skip all</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle small">
+            <thead class="table-light"><tr><th>#</th><th>Key</th><th>Title</th><th>Result</th><th>Differences / problems</th><th>Decision</th></tr></thead>
+            <tbody>
+                @foreach (var r in a.Records)
+                {
+                    <tr>
+                        <td>@(r.RowIndex + 1)</td>
+                        <td>@r.Key @if (r.MatchedBy is not null) { <div class="text-muted">matched by @r.MatchedBy</div> }</td>
+                        <td class="td-wrap">@r.Title</td>
+                        <td><span class="badge @Badge(r.Outcome)">@r.Outcome</span></td>
+                        <td class="td-wrap">
+                            @if (r.Errors.Count > 0)
+                            {
+                                <ul class="mb-0 text-danger">@foreach (var e in r.Errors) { <li>@e</li> }</ul>
+                            }
+                            @if (r.Diffs.Count > 0)
+                            {
+                                <ul class="mb-0">@foreach (var d in r.Diffs) { <li><strong>@d.Label:</strong> <span class="text-decoration-line-through text-muted">@(string.IsNullOrEmpty(d.Current) ? "—" : d.Current)</span> &rarr; @(string.IsNullOrEmpty(d.Uploaded) ? "—" : d.Uploaded)</li> }</ul>
+                            }
+                            @if (r.NewLookups.Count > 0)
+                            {
+                                <div class="text-warning-emphasis">Will create: @string.Join(", ", r.NewLookups.Select(n => $"{n.Label} \"{n.Name}\""))</div>
+                            }
+                        </td>
+                        <td>
+                            @if (r.Outcome == "invalid")
+                            {
+                                <span class="text-muted">skip</span>
+                            }
+                            else
+                            {
+                                <select class="form-select form-select-sm" name="decisions[@r.RowIndex]" data-suggested="@r.SuggestedAction" aria-label="Decision for row @(r.RowIndex + 1)">
+                                    @foreach (var opt in r.Outcome == "new" ? new[] { "insert", "skip" } : new[] { "update", "insert", "skip" })
+                                    {
+                                        <option value="@opt" selected="@(opt == r.SuggestedAction)">@opt</option>
+                                    }
+                                </select>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex gap-2 sticky-bottom bg-body py-2 border-top">
+        <a class="btn btn-outline-secondary" asp-action="Preview" asp-route-token="@s.Token">Back</a>
+        @if (canWrite)
+        {
+            <button type="submit" class="btn btn-primary" data-confirm-click="Merge the selected rows into @Model.Target.Label? Missing lookup values will be created.">Merge</button>
+        }
+        else
+        {
+            <span class="text-muted small align-self-center">Read-only access: merging is not permitted.</span>
+        }
+    </div>
+</form>

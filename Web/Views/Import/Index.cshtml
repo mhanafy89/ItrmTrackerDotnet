@@ -1,0 +1,27 @@
+﻿@model ImportUploadViewModel
+@{
+    ViewData["Title"] = "Import & Merge";
+}
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h1 class="h4 mb-0">Import &amp; Merge</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-action="History">Import history</a>
+</div>
+<partial name="_Steps" model="1" />
+<form method="post" asp-action="Upload" enctype="multipart/form-data" class="card card-body shadow-sm" style="max-width: 48rem">
+    <fieldset class="mb-3">
+        <legend class="h6">Import into</legend>
+        @foreach (var t in Model.Targets)
+        {
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="target" id="target-@t.Key" value="@t.Key" checked="@(t.Key == Model.Target)" />
+                <label class="form-check-label" for="target-@t.Key">@t.Label</label>
+            </div>
+        }
+    </fieldset>
+    <div class="dropzone mb-3" data-dropzone>
+        <label for="file" class="form-label">Excel (.xlsx) or CSV (.csv, .txt) file – drop it here or browse</label>
+        <input class="form-control" type="file" id="file" name="file" accept=".xlsx,.csv,.txt" required />
+        <div class="form-text">The first worksheet is read; the first row must contain the column headers. Up to @ImportDefinitions.MaxRows rows and 30 MB.</div>
+    </div>
+    <div><button type="submit" class="btn btn-primary">Upload and auto-detect columns</button></div>
+</form>

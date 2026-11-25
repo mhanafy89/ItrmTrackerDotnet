@@ -1,0 +1,55 @@
+﻿@model QueryViewModel
+@{
+    ViewData["Title"] = "Query";
+}
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h1 class="h4 mb-0">Query</h1>
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#schemaPanel" aria-controls="schemaPanel">Schema</button>
+</div>
+<form method="post" asp-action="Index" id="queryForm">
+    <label for="Sql" class="form-label small text-muted">SELECT queries only (read-only). Ctrl+Enter to run.</label>
+    <textarea class="form-control font-monospace" id="Sql" name="Sql" rows="7" spellcheck="false" data-ctrl-enter placeholder="SELECT TOP 50 br_no, title FROM business_requests ORDER BY updated_at DESC">@Model.Sql</textarea>
+    <div class="d-flex gap-2 mt-2">
+        <button type="submit" class="btn btn-primary">Run</button>
+        @if (Model.Result is not null)
+        {
+            <button type="submit" class="btn btn-outline-secondary" formaction="@Url.Action("Export")">Export CSV</button>
+        }
+    </div>
+</form>
+
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger mt-3" role="alert">@Model.Error</div>
+}
+@if (Model.Result is { } res)
+{
+    <p class="small text-muted mt-3 mb-1">@res.RowCount row@(res.RowCount == 1 ? "" : "s")@(res.Truncated ? " (result truncated – refine the query)" : "")</p>
+    <div class="table-responsive query-result">
+        <table class="table table-sm table-striped small">
+            <thead class="table-light sticky-top"><tr>@foreach (var c in res.Columns) { <th scope="col">@c</th> }</tr></thead>
+            <tbody>
+                @foreach (var row in res.Rows)
+                {
+                    <tr>@foreach (var v in row) { <td class="td-wrap">@(v ?? "NULL")</td> }</tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="schemaPanel" aria-labelledby="schemaTitle">
+    <div class="offcanvas-header">
+        <h2 class="offcanvas-title h5" id="schemaTitle">Schema</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body small">
+        @foreach (var t in Model.Schema)
+        {
+            <details>
+                <summary class="font-monospace">@t.Name</summary>
+                <ul class="list-unstyled ms-3">@foreach (var c in t.Columns) { <li><span class="font-monospace">@c.Name</span> <span class="text-muted">@c.Type</span></li> }</ul>
+            </details>
+        }
+    </div>
+</div>

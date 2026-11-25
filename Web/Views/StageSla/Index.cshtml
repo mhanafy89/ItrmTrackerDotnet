@@ -1,0 +1,81 @@
+@model StageSlaDashboardViewModel
+@{
+    ViewData["Title"] = "Stage SLA";
+    var d = Model.Data;
+    var rank = new Dictionary<string, int> { [SlaHealth.Breached] = 0, [SlaHealth.AtRisk] = 1, [SlaHealth.OnTrack] = 2 };
+    // Worst first, like the original stage-sla.js.
+    var requests = d.Requests.OrderBy(r => r.SlaHealth is { } h && rank.TryGetValue(h, out var v) ? v : 3).ToList();
+}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="h4 mb-0">Stage SLA</h1>
+    <form method="get" class="d-flex align-items-center gap-2">
+        <label class="small" for="health">Health</label>
+        <select class="form-select form-select-sm" id="health" name="health" data-autosubmit>
+            <option value="" selected="@string.IsNullOrEmpty(Model.Health)">All</option>
+            @foreach (var h in new[] { SlaHealth.OnTrack, SlaHealth.AtRisk, SlaHealth.Breached })
+            {
+                <option value="@h" selected="@(Model.Health == h)">@h</option>
+            }
+        </select>
+        <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button></noscript>
+    </form>
+</div>
+
+<section class="kpi-grid mb-3" aria-label="Totals">
+    <div class="kpi-tile"><div class="kpi-num">@d.Totals.Requests</div><div class="kpi-lbl">Tracked requests</div></div>
+    <div class="kpi-tile"><div class="kpi-num">@d.Totals.Health[SlaHealth.OnTrack]</div><div class="kpi-lbl">On Track</div></div>
+    <div class="kpi-tile @(d.Totals.Health[SlaHealth.AtRisk] > 0 ? "kpi-warning" : "")"><div class="kpi-num">@d.Totals.Health[SlaHealth.AtRisk]</div><div class="kpi-lbl">At Risk (&gt;@DisplayFormatter.Num(d.Thresholds.AtRiskPct)%)</div></div>
+    <div class="kpi-tile @(d.Totals.Health[SlaHealth.Breached] > 0 ? "kpi-danger" : "")"><div class="kpi-num">@d.Totals.Health[SlaHealth.Breached]</div><div class="kpi-lbl">Breached (&gt;@DisplayFormatter.Num(d.Thresholds.BreachPct)%)</div></div>
+    <div class="kpi-tile"><div class="kpi-num">@DisplayFormatter.Num(d.Totals.PlannedDays)</div><div class="kpi-lbl">Planned man-days</div></div>
+    <div class="kpi-tile"><div class="kpi-num">@DisplayFormatter.Num(d.Totals.ConsumedDays)</div><div class="kpi-lbl">Consumed working days</div></div>
+    <div class="kpi-tile"><div class="kpi-num">@DisplayFormatter.Num(d.Totals.HoldDays)</div><div class="kpi-lbl">Hold days</div></div>
+</section>
+
+<section class="mb-4" aria-labelledby="byStage">
+    <h2 class="h6" id="byStage">By stage</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead class="table-light"><tr><th>Stage</th><th>Requests</th><th>Planned</th><th>Actual</th><th>Variance</th><th>Hold</th><th>Utilization</th><th>Health</th></tr></thead>
+            <tbody>
+                @if (d.Stages.Count == 0) { <tr><td colspan="8" class="text-center text-muted">No started stages yet.</td></tr> }
+                @foreach (var s in d.Stages)
+                {
+                    <tr>
+                        <td>@s.Stage</td><td>@s.Requests</td><td>@DisplayFormatter.Num(s.PlannedEffort)</td><td>@DisplayFormatter.Num(s.ActualEffort)</td>
+                        <td>@DisplayFormatter.Num(s.VarianceDays)</td><td>@DisplayFormatter.Num(s.HoldDays)</td><td>@DisplayFormatter.Pct(s.UtilizationPct)</td>
+                        <td><span class="badge @DisplayFormatter.HealthClass(s.SlaState)">@(s.SlaState ?? "—")</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section aria-labelledby="byRequest">
+    <h2 class="h6" id="byRequest">Requests (worst first)</h2>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light"><tr><th>BR No</th><th>Title</th><th>Priority</th><th>Current stage</th><th>Status</th><th>Planned</th><th>Consumed</th><th>Remaining</th><th>Hold</th><th>Utilization</th><th>Health</th><th>Expected completion</th></tr></thead>
+            <tbody>
+                @if (requests.Count == 0) { <tr><td colspan="12" class="text-center text-muted">No tracked requests match.</td></tr> }
+                @foreach (var r in requests)
+                {
+                    <tr data-href="@Url.Action("Details", "BusinessRequests", new { id = r.RequestId })">
+                        <td>@r.BrNo</td>
+                        <td class="td-wrap"><a asp-controller="BusinessRequests" asp-action="Details" asp-route-id="@r.RequestId" asp-fragment="stage-sla">@r.Title</a></td>
+                        <td>@r.Priority</td>
+                        <td>@r.CurrentStage</td>
+                        <td><span class="badge @DisplayFormatter.StageStatusClass(r.Status)">@r.Status</span></td>
+                        <td>@DisplayFormatter.Num(r.TotalPlannedDays)</td>
+                        <td>@DisplayFormatter.Num(r.TotalConsumedDays)</td>
+                        <td>@DisplayFormatter.Num(r.TotalRemainingDays)</td>
+                        <td>@DisplayFormatter.Num(r.TotalHoldDays)</td>
+                        <td>@DisplayFormatter.Pct(r.UtilizationPct)</td>
+                        <td><span class="badge @DisplayFormatter.HealthClass(r.SlaHealth)">@(r.SlaHealth ?? "—")</span> @if (r.UnestimatedStages > 0) { <span class="badge text-bg-light border" title="Stages without an estimate">@r.UnestimatedStages unestimated</span> }</td>
+                        <td>@(r.ExpectedCompletionDate ?? "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

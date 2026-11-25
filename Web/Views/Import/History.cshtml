@@ -1,0 +1,26 @@
+﻿@model ImportHistoryViewModel
+@inject DisplayFormatter Format
+@{
+    ViewData["Title"] = "Import history";
+}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">Import history</h1>
+    <a class="btn btn-sm btn-outline-secondary" asp-action="Index">New import</a>
+</div>
+<div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light"><tr><th>#</th><th>When</th><th>By</th><th>File</th><th>Target</th><th>Rows</th><th>New</th><th>Updated</th><th>Duplicates</th><th>Skipped</th><th>Invalid</th><th>Errors</th></tr></thead>
+        <tbody>
+            @if (Model.Batches.Count == 0) { <tr><td colspan="12" class="text-center text-muted">No imports yet.</td></tr> }
+            @foreach (var b in Model.Batches)
+            {
+                <tr data-href="@Url.Action("HistoryDetail", new { id = b.Id })">
+                    <td><a asp-action="HistoryDetail" asp-route-id="@b.Id">@b.Id</a></td>
+                    <td><time class="js-local" datetime="@DisplayFormatter.Iso(b.CreatedAt)">@Format.DateTime(b.CreatedAt)</time></td>
+                    <td>@b.CreatedBy</td><td>@b.Filename</td><td>@b.Target</td><td>@b.TotalRows</td><td>@b.NewCount</td><td>@b.UpdatedCount</td>
+                    <td>@b.DuplicateCount</td><td>@b.SkippedCount</td><td>@b.InvalidCount</td><td>@b.ErrorCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

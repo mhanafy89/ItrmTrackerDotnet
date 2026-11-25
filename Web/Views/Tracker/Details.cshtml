@@ -1,0 +1,228 @@
+@model TrackerDetailsViewModel
+@inject DisplayFormatter Format
+@{
+    var r = Model.Record;
+    var meta = Model.Meta;
+    var isBr = !meta.IsIncident;
+    ViewData["Title"] = $"{meta.Singular} {r.RefNo}".Trim();
+    string D(DateOnly? d) => LegacyFormat.Date(d) ?? "\u2014";
+    string T(string? s) => string.IsNullOrWhiteSpace(s) ? "\u2014" : s;
+}
+
+@{
+    void Bool(bool v)
+    {
+        <span class="badge @(v ? "text-bg-success" : "text-bg-light border")">@(v ? "Yes" : "No")</span>
+    }
+
+    void Copyable(string label, string? value)
+    {
+        <dt class="col-sm-4">@label</dt>
+        <dd class="col-sm-8">
+            @T(value)
+            @if (!string.IsNullOrEmpty(value))
+            {
+                <button type="button" class="btn btn-sm btn-link py-0" data-copy-value="@value" aria-label="Copy @label">Copy</button>
+            }
+        </dd>
+    }
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb small mb-2">
+        <li class="breadcrumb-item"><a asp-action="Index">@meta.Plural</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@T(r.RefNo)</li>
+    </ol>
+</nav>
+
+<div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <h1 class="h4 mb-0">@r.Title</h1>
+    <div class="d-flex flex-wrap gap-2">
+        <form method="post" asp-action="@(Model.IsFollowed ? "Unfollow" : "Follow")" asp-route-id="@r.Id">
+            <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = r.Id })" />
+            <button type="submit" class="btn btn-sm btn-outline-warning">@(Model.IsFollowed ? "\u2605 Following" : "\u2606 Follow")</button>
+        </form>
+        @if (Model.CanWrite)
+        {
+            <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@r.Id">Edit</a>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-6">
+        <section class="card shadow-sm mb-3" aria-labelledby="basicInfo">
+            <h2 class="card-header h6" id="basicInfo">Basic info</h2>
+            <dl class="card-body row mb-0">
+                @{ Copyable(meta.RefLabel, r.RefNo); Copyable("CR", r.Cr); }
+                @if (isBr)
+                {
+                    <dt class="col-sm-4">Submission Date</dt><dd class="col-sm-8">@D(r.SubmissionDate)</dd>
+                }
+                <dt class="col-sm-4">Business Unit</dt><dd class="col-sm-8">@T(r.BusinessUnit)</dd>
+                @if (isBr)
+                {
+                    <dt class="col-sm-4">Business Category</dt><dd class="col-sm-8">@T(r.BusinessCategory)</dd>
+                }
+                <dt class="col-sm-4">Requester</dt><dd class="col-sm-8">@T(r.Requester)</dd>
+                <dt class="col-sm-4">Description</dt><dd class="col-sm-8 text-prewrap">@T(r.Description)</dd>
+            </dl>
+        </section>
+
+        <section class="card shadow-sm mb-3" aria-labelledby="classification">
+            <h2 class="card-header h6" id="classification">Classification</h2>
+            <dl class="card-body row mb-0">
+                <dt class="col-sm-4">Priority</dt><dd class="col-sm-8">@T(r.Priority)</dd>
+                <dt class="col-sm-4">Stage</dt><dd class="col-sm-8">@T(r.Stage)</dd>
+                <dt class="col-sm-4">Status</dt><dd class="col-sm-8">@T(r.Status)</dd>
+                <dt class="col-sm-4">System</dt><dd class="col-sm-8">@T(r.System)</dd>
+            </dl>
+        </section>
+
+        <section class="card shadow-sm mb-3" aria-labelledby="flags">
+            <h2 class="card-header h6" id="flags">Flags and ownership</h2>
+            <dl class="card-body row mb-0">
+                <dt class="col-sm-4">Newgen Related</dt><dd class="col-sm-8">@{ Bool(r.NewgenRelated); }</dd>
+                <dt class="col-sm-4">Estimated</dt><dd class="col-sm-8">@{ Bool(r.Estimated); }</dd>
+                @if (isBr)
+                {
+                    <dt class="col-sm-4">BA Required</dt><dd class="col-sm-8">@{ Bool(r.BaRequired); }</dd>
+                    <dt class="col-sm-4">BRD Assigned</dt><dd class="col-sm-8">@{ Bool(r.BrdAssigned); }</dd>
+                }
+                <dt class="col-sm-4">Tech Owner</dt><dd class="col-sm-8">@T(r.TechOwner)</dd>
+                <dt class="col-sm-4">RM</dt><dd class="col-sm-8">@T(r.Rm)</dd>
+                @if (isBr)
+                {
+                    <dt class="col-sm-4">Regulatory</dt><dd class="col-sm-8">@{ Bool(r.Regulatory); }</dd>
+                    @if (r.Regulatory)
+                    {
+                        <dt class="col-sm-4">Regulator</dt><dd class="col-sm-8">@T(r.Regulator)</dd>
+                        <dt class="col-sm-4">Regulatory Deadline</dt><dd class="col-sm-8">@D(r.RegulatoryDeadline)</dd>
+                    }
+                }
+            </dl>
+        </section>
+    </div>
+
+    <div class="col-xl-6">
+        <section class="card shadow-sm mb-3" aria-labelledby="dates">
+            <h2 class="card-header h6" id="dates">Pipeline dates</h2>
+            <dl class="card-body row mb-0">
+                @if (isBr)
+                {
+                    <dt class="col-sm-5">Analysis Planned Start</dt><dd class="col-sm-7">@D(r.AnalysisPlannedStartDate)</dd>
+                    <dt class="col-sm-5">Analysis Planned End</dt><dd class="col-sm-7">@D(r.AnalysisPlannedEndDate)</dd>
+                }
+                <dt class="col-sm-5">Dev Planned Start</dt><dd class="col-sm-7">@D(r.DevPlannedStartDate)</dd>
+                <dt class="col-sm-5">Dev Planned End</dt><dd class="col-sm-7">@D(r.DevPlannedEndDate)</dd>
+                <dt class="col-sm-5">QA Planned Start</dt><dd class="col-sm-7">@D(r.QaPlannedStartDate)</dd>
+                <dt class="col-sm-5">QA Planned End</dt><dd class="col-sm-7">@D(r.QaPlannedEndDate)</dd>
+                <dt class="col-sm-5">UAT Planned Start</dt><dd class="col-sm-7">@D(r.UatPlannedStartDate)</dd>
+                <dt class="col-sm-5">UAT Planned End</dt><dd class="col-sm-7">@D(r.UatPlannedDate)</dd>
+                <dt class="col-sm-5">CAB Date</dt><dd class="col-sm-7">@D(r.CabDate)</dd>
+                <dt class="col-sm-5">Deployment Planned End</dt><dd class="col-sm-7">@D(r.DeploymentPlannedEndDate)</dd>
+                <dt class="col-sm-5">Closed Date</dt><dd class="col-sm-7">@D(r.ClosedDate)</dd>
+            </dl>
+        </section>
+
+        @if (r.Sla is { } sla)
+        {
+            <section class="card shadow-sm mb-3" aria-labelledby="slaInfo">
+                <h2 class="card-header h6" id="slaInfo">SLA</h2>
+                <dl class="card-body row mb-0">
+                    <dt class="col-sm-5">SLA Status</dt><dd class="col-sm-7"><span class="badge @DisplayFormatter.SlaFlagClass(sla.SlaFlag)">@sla.SlaFlag</span></dd>
+                    <dt class="col-sm-5">SLA State</dt><dd class="col-sm-7">@sla.SlaState</dd>
+                    <dt class="col-sm-5">Remaining (working days)</dt><dd class="col-sm-7">@DisplayFormatter.Num(sla.SlaRemainingDays)</dd>
+                    <dt class="col-sm-5">Remaining effort (man-days)</dt><dd class="col-sm-7">@DisplayFormatter.Num(sla.SlaEffortDays)</dd>
+                    <dt class="col-sm-5">SLA target date</dt><dd class="col-sm-7">@T(sla.SlaTargetDate)</dd>
+                    <dt class="col-sm-5">Target vs planned go-live</dt><dd class="col-sm-7">@DisplayFormatter.Gap(sla.SlaGapDays)</dd>
+                    @if (sla.SlaBreakdown.Count > 0)
+                    {
+                        <dt class="col-sm-5">Time by stage</dt>
+                        <dd class="col-sm-7">@string.Join(" · ", sla.SlaBreakdown.Select(b => $"{b.Stage}: {DisplayFormatter.Num(b.Days)}d"))</dd>
+                    }
+                </dl>
+            </section>
+        }
+
+        <section class="card shadow-sm mb-3" aria-labelledby="recordInfo">
+            <h2 class="card-header h6" id="recordInfo">Record info</h2>
+            <dl class="card-body row mb-0">
+                <dt class="col-sm-5">Created</dt><dd class="col-sm-7"><time class="js-local" datetime="@DisplayFormatter.Iso(r.CreatedAt)">@Format.DateTime(r.CreatedAt)</time> &middot; @T(r.CreatedBy)</dd>
+                <dt class="col-sm-5">Last updated</dt><dd class="col-sm-7"><time class="js-local" datetime="@DisplayFormatter.Iso(r.UpdatedAt)">@Format.DateTime(r.UpdatedAt)</time> &middot; @T(r.UpdatedBy)</dd>
+                <dt class="col-sm-5">Days since update</dt><dd class="col-sm-7">@r.AgeDays @(r.IsStale ? "(stale)" : "")</dd>
+            </dl>
+        </section>
+    </div>
+</div>
+
+@if (isBr)
+{
+    <partial name="~/Views/Tracker/_StageSla.cshtml" model="Model" />
+}
+
+<section class="card shadow-sm mb-3" id="comments" aria-labelledby="commentsTitle">
+    <h2 class="card-header h6" id="commentsTitle">Comments (@Model.Comments.Count)</h2>
+    <div class="card-body">
+        @if (Model.Comments.Count == 0)
+        {
+            <p class="text-muted small">No comments yet.</p>
+        }
+        <ul class="list-unstyled">
+            @foreach (var c in Model.Comments)
+            {
+                <li class="border-bottom py-2">
+                    <div class="small text-muted d-flex justify-content-between">
+                        <span><strong>@T(c.CreatedBy)</strong> &middot; <time class="js-local" datetime="@DisplayFormatter.Iso(c.CreatedAt)">@Format.DateTime(c.CreatedAt)</time></span>
+                        @if (Model.CanWrite)
+                        {
+                            <form method="post" asp-action="DeleteComment" asp-route-id="@r.Id" asp-route-commentId="@c.Id" data-confirm="Delete this comment?">
+                                <button type="submit" class="btn btn-sm btn-link text-danger p-0">Delete</button>
+                            </form>
+                        }
+                    </div>
+                    <div class="text-prewrap">@c.Body</div>
+                </li>
+            }
+        </ul>
+        <form method="post" asp-action="Comment" asp-route-id="@r.Id">
+            <label class="form-label visually-hidden" for="NewComment_Body">Comment</label>
+            <textarea class="form-control" id="NewComment_Body" name="NewComment.Body" rows="2" maxlength="@TrackerRules.CommentMaxLength" placeholder="Write a comment… (Ctrl+Enter to post)" data-ctrl-enter required></textarea>
+            <button type="submit" class="btn btn-sm btn-primary mt-2">Post comment</button>
+        </form>
+    </div>
+</section>
+
+<section class="card shadow-sm mb-3" aria-labelledby="auditTitle">
+    <h2 class="card-header h6" id="auditTitle">Audit trail</h2>
+    <div class="card-body">
+        @if (Model.History.Count == 0)
+        {
+            <p class="text-muted small mb-0">No history yet.</p>
+        }
+        @foreach (var h in Model.History)
+        {
+            <div class="border-bottom py-2">
+                <div class="small">
+                    <span class="badge text-bg-secondary">@h.ChangeLabel</span>
+                    <time class="js-local text-muted" datetime="@DisplayFormatter.Iso(h.ChangedAt)">@Format.DateTime(h.ChangedAt)</time>
+                    <span class="text-muted">&bull; @(h.ChangedBy ?? "unknown user")</span>
+                </div>
+                @if (h.Changes.Count > 0)
+                {
+                    <ul class="small mb-0 mt-1">
+                        @foreach (var c in h.Changes)
+                        {
+                            <li><strong>@c.Label:</strong> @c.Before &rarr; @c.After</li>
+                        }
+                    </ul>
+                }
+                else if (h.ChangeType is "update" or "bulk-update")
+                {
+                    <div class="small text-muted">No tracked field changes.</div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
